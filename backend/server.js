@@ -7,7 +7,7 @@ const app = express();
 app.disable("x-powered-by");
 app.use(express.json());
 
-const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:5500,http://127.0.0.1:5500,http://localhost:3000")
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:5500,http://127.0.0.1:5500,https://cine-ai-9mob.onrender.com")
     .split(",")
     .map(o => o.trim())
     .filter(Boolean);

@@ -84,7 +84,7 @@ async function caricaHeroDinamica(genere = "azione") {
 
         const genreId = genreMap[genere] || 28;
 
-        const url = `http://localhost:3000/api/hero?genre=${genreId}`;
+        const url = `https://cine-ai-9mob.onrender.com/api/hero?genre=${genreId}`;
 
         const response = await fetch(url);
         const data = await response.json();
@@ -152,7 +152,7 @@ async function fetchFilmDaAPI(mood, tempo, genere, pageHint = null) {
         const page = Number.isFinite(Number(pageHint)) ? Number(pageHint) : randomPage;
 
         const epoca = wizardData?.epoca || "misto";
-        const url = `http://localhost:3000/api/films?mood=${mood}&tempo=${tempo}&genere=${genere}&epoca=${epoca}&page=${page}`;
+        const url = `https://cine-ai-9mob.onrender.com/api/films?mood=${mood}&tempo=${tempo}&genere=${genere}&epoca=${epoca}&page=${page}`;
         const response = await fetch(url);
         const data = await response.json();
 
@@ -289,7 +289,7 @@ async function apriModale(film, card) {
 
     try {
 
-        const url = `http://localhost:3000/api/film/${film.id}?include=videos,providers,credits`;
+        const url = `https://cine-ai-9mob.onrender.com/api/film/${film.id}?include=videos,providers,credits`;
         const res = await fetch(url);
         const data = await res.json();
         modal.querySelector("#modal-title-header").textContent = data.title;
@@ -460,7 +460,7 @@ async function mostraFilm(listaFilm, container) {
             if (typeof film.runtime === "number") return film;
 
             try {
-                const detailsRes = await fetch(`http://localhost:3000/api/film/${film.id}`);
+                const detailsRes = await fetch(`https://cine-ai-9mob.onrender.com/api/film/${film.id}`);
                 const details = await detailsRes.json();
                 return {
                     ...film,
@@ -614,7 +614,7 @@ async function mostraFilm(listaFilm, container) {
 async function mostraTop3(lista, container) {
     const filmsWithDetails = await Promise.all(
         lista.map(async (film) => {
-            const res = await fetch(`http://localhost:3000/api/film/${film.id}`);
+            const res = await fetch(`https://cine-ai-9mob.onrender.com/api/film/${film.id}`);
             const data = await res.json();
             return {
                 ...film,
@@ -861,7 +861,7 @@ async function mostraFilmSalvati() {
 
     for (let id of savedMovies) {
         try {
-            const res = await fetch(`http://localhost:3000/api/film/${id}`);
+            const res = await fetch(`https://cine-ai-9mob.onrender.com/api/film/${id}`);
             const film = await res.json();
 
             const poster = film.poster_path
