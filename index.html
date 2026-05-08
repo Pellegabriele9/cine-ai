@@ -3,19 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineAI 🎬</title>
+    <title>CineAI</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="cinemaIntro" class="cinema-intro">
-  <div class="curtain curtain-left"></div>
-  <div class="curtain curtain-right"></div>
-
-  <div class="intro-center">
-    <h1>🎬 CineAI</h1>
-    <p>Il tuo cinema su misura</p>
-  </div>
+<div id="siteIntro" class="site-intro" aria-hidden="true">
+    <div class="intro-tunnel">
+        <span style="--i:0"></span>
+        <span style="--i:1"></span>
+        <span style="--i:2"></span>
+        <span style="--i:3"></span>
+        <span style="--i:4"></span>
+        <span style="--i:5"></span>
+    </div>
+    <div class="intro-beam"></div>
+    <div class="intro-logo-lockup">
+        <img src="assets/cineai-logo-512.png" alt="">
+        <strong>CineAI</strong>
+        <p>Trova cosa guardare</p>
+    </div>
 </div>
 
 <!-- MODALE -->
@@ -37,10 +44,11 @@
 <!-- NAVBAR -->
 <header class="navbar">
     <div class="navbar-brand">
-        <h1 class="logo">🎬 CineAI</h1>
-        <span class="logo-sub">Il tuo cinema su misura</span>
+        <img class="brand-icon" src="assets/cineai-logo-512.png" alt="" aria-hidden="true">
+        <h1 class="logo">CineAI</h1>
+        <span class="logo-sub">Trova cosa guardare</span>
     </div>
-    <button class="saved-trigger" id="savedTrigger">❤️ <span>I miei film</span></button>
+    <button class="saved-trigger" id="savedTrigger"><span class="nav-icon nav-icon-saved" aria-hidden="true"></span><span>I miei film</span></button>
 </header>
 
 <!-- SIDEBAR -->
@@ -49,7 +57,7 @@
     <div class="sidebar-panel">
         <div class="sidebar-header">
             <div>
-                <h2>❤️ I tuoi film preferiti</h2>
+                <h2>I tuoi film preferiti</h2>
                 <p id="savedCount">0 film salvati</p>
             </div>
             <button class="sidebar-clear" id="clearSaved">Svuota</button>
@@ -61,6 +69,7 @@
 
 <!-- HERO -->
 <section class="hero" id="hero">
+    <div class="hero-poster-wall" id="heroPosterWall" aria-hidden="true"></div>
     <canvas id="particleCanvas"></canvas>
     <div class="overlay"></div>
     <div class="hero-headline">
@@ -69,17 +78,18 @@
     </div>
     <div class="form-container" id="formWizard">
         <div class="wizard-shell-top">
+            <button class="wizard-back" id="wizardBack" type="button" aria-label="Torna allo step precedente">←</button>
             <span id="wizardStepLabel">Step 1 di 4</span>
             <div class="wizard-line"><span id="wizardLineFill"></span></div>
         </div>
         <div class="wizard-step active" id="step1">
             <p class="wizard-question">Come ti senti stasera?</p>
             <div class="wizard-cards wizard-cards-mood">
-                <div class="wizard-card" data-value="mentale"><span class="choice-icon">🧠</span><strong>Voglio pensare</strong><small>storie dense, finali che restano</small></div>
-                <div class="wizard-card" data-value="evasione"><span class="choice-icon">🌌</span><strong>Voglio staccare</strong><small>mondi lontani e ritmo facile</small></div>
-                <div class="wizard-card" data-value="emozioni_forti"><span class="choice-icon">⚡</span><strong>Emozioni forti</strong><small>tensione, energia, adrenalina</small></div>
-                <div class="wizard-card" data-value="comfort"><span class="choice-icon">🍿</span><strong>Relax totale</strong><small>zero stress, puro divano</small></div>
-                <div class="wizard-card" data-value="curioso"><span class="choice-icon">🔎</span><strong>Scoprire qualcosa</strong><small>film meno ovvi, più carattere</small></div>
+                <div class="wizard-card" data-value="mentale"><span class="choice-icon icon-think" aria-hidden="true"></span><strong>Voglio pensare</strong><small>storie dense, finali che restano</small></div>
+                <div class="wizard-card" data-value="evasione"><span class="choice-icon icon-escape" aria-hidden="true"></span><strong>Voglio staccare</strong><small>mondi lontani e ritmo facile</small></div>
+                <div class="wizard-card" data-value="emozioni_forti"><span class="choice-icon icon-intense" aria-hidden="true"></span><strong>Emozioni forti</strong><small>tensione, energia, adrenalina</small></div>
+                <div class="wizard-card" data-value="comfort"><span class="choice-icon icon-comfort" aria-hidden="true"></span><strong>Relax totale</strong><small>zero stress, puro divano</small></div>
+                <div class="wizard-card" data-value="curioso"><span class="choice-icon icon-curious" aria-hidden="true"></span><strong>Scoprire qualcosa</strong><small>film meno ovvi, più carattere</small></div>
             </div>
         </div>
         <div class="wizard-step" id="step2">
@@ -97,26 +107,26 @@
         <div class="wizard-step" id="step3">
             <p class="wizard-question">Che genere preferisci?</p>
             <div class="wizard-cards wizard-cards-genere">
-                <div class="wizard-card compact" data-value="azione"><span class="choice-icon">💥</span><strong>Azione</strong></div>
-                <div class="wizard-card compact" data-value="commedia"><span class="choice-icon">😄</span><strong>Commedia</strong></div>
-                <div class="wizard-card compact" data-value="drammatico"><span class="choice-icon">🎭</span><strong>Dramma</strong></div>
-                <div class="wizard-card compact" data-value="thriller"><span class="choice-icon">🕯️</span><strong>Thriller</strong></div>
-                <div class="wizard-card compact" data-value="horror"><span class="choice-icon">🌙</span><strong>Horror</strong></div>
-                <div class="wizard-card compact" data-value="fantascienza"><span class="choice-icon">🚀</span><strong>Fantascienza</strong></div>
-                <div class="wizard-card compact" data-value="romantico"><span class="choice-icon">💘</span><strong>Romantico</strong></div>
-                <div class="wizard-card compact" data-value="avventura"><span class="choice-icon">🗺️</span><strong>Avventura</strong></div>
-                <div class="wizard-card compact" data-value="animazione"><span class="choice-icon">✨</span><strong>Animazione</strong></div>
-                <div class="wizard-card compact" data-value="documentario"><span class="choice-icon">🎥</span><strong>Documentario</strong></div>
+                <div class="wizard-card compact" data-value="azione"><span class="choice-icon icon-action" aria-hidden="true"></span><strong>Azione</strong></div>
+                <div class="wizard-card compact" data-value="commedia"><span class="choice-icon icon-comedy" aria-hidden="true"></span><strong>Commedia</strong></div>
+                <div class="wizard-card compact" data-value="drammatico"><span class="choice-icon icon-drama" aria-hidden="true"></span><strong>Dramma</strong></div>
+                <div class="wizard-card compact" data-value="thriller"><span class="choice-icon icon-thriller" aria-hidden="true"></span><strong>Thriller</strong></div>
+                <div class="wizard-card compact" data-value="horror"><span class="choice-icon icon-horror" aria-hidden="true"></span><strong>Horror</strong></div>
+                <div class="wizard-card compact" data-value="fantascienza"><span class="choice-icon icon-sci-fi" aria-hidden="true"></span><strong>Fantascienza</strong></div>
+                <div class="wizard-card compact" data-value="romantico"><span class="choice-icon icon-romance" aria-hidden="true"></span><strong>Romantico</strong></div>
+                <div class="wizard-card compact" data-value="avventura"><span class="choice-icon icon-adventure" aria-hidden="true"></span><strong>Avventura</strong></div>
+                <div class="wizard-card compact" data-value="animazione"><span class="choice-icon icon-animation" aria-hidden="true"></span><strong>Animazione</strong></div>
+                <div class="wizard-card compact" data-value="documentario"><span class="choice-icon icon-documentary" aria-hidden="true"></span><strong>Documentario</strong></div>
             </div>
         </div>
         <div class="wizard-step" id="step4">
             <p class="wizard-question">Che epoca preferisci?</p>
             <div class="wizard-cards">
-                <div class="wizard-card" data-value="recente"><span class="choice-icon">📱</span><strong>Film recenti</strong><small>dal 2000 in poi</small></div>
-                <div class="wizard-card" data-value="misto"><span class="choice-icon">🎞️</span><strong>Qualsiasi epoca</strong><small>lasciami pescare meglio</small></div>
-                <div class="wizard-card" data-value="classici"><span class="choice-icon">🏛️</span><strong>Classici</strong><small>più storia, meno hype</small></div>
+                <div class="wizard-card" data-value="recente"><span class="choice-icon icon-recent" aria-hidden="true"></span><strong>Film recenti</strong><small>dal 2000 in poi</small></div>
+                <div class="wizard-card" data-value="misto"><span class="choice-icon icon-any-era" aria-hidden="true"></span><strong>Qualsiasi epoca</strong><small>lasciami pescare meglio</small></div>
+                <div class="wizard-card" data-value="classici"><span class="choice-icon icon-classic" aria-hidden="true"></span><strong>Classici</strong><small>più storia, meno hype</small></div>
             </div>
-            <button class="wizard-next" id="btnTrovaFilm">Trova il mio film</button>
+            <button class="wizard-next" id="btnTrovaFilm" disabled>Scegli un'epoca</button>
         </div>
         <div class="wizard-summary" id="wizardSummary">Scegli il mood della serata</div>
         <div class="wizard-progress">
@@ -131,7 +141,7 @@
 <!-- RISULTATI -->
 <section class="results-section">
     <div class="top-section">
-        <h2 class="top-message">🔥 🔥 Ti consiglio di partire da qui</h2>
+        <h2 class="top-message">Ti consiglio di partire da qui</h2>
         <div id="aiBox"></div>
         <button class="reroll-btn hidden" id="rerollBtn">No, dammi un'altra vibe</button>
         <div id="top3" class="top3-wrapper"></div>
@@ -141,7 +151,7 @@
 </section>
 
 <div id="loading" class="loading hidden">
-    <p>🎬 Analizzando i tuoi gusti...</p>
+    <p>Analizzando i tuoi gusti...</p>
 </div>
 
 <footer class="site-footer">

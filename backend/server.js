@@ -124,7 +124,10 @@ app.get("/api/hero", async (req, res) => {
         const genreRaw = Number(req.query.genre);
         const genre = Number.isFinite(genreRaw) ? genreRaw : 28;
 
-        const url = tmdbUrl("/discover/movie", `&with_genres=${genre}&sort_by=popularity.desc`);
+        const pageRaw = Number(req.query.page);
+        const page = Number.isFinite(pageRaw) ? Math.min(3, Math.max(1, Math.round(pageRaw))) : 1;
+        const baseQuery = `&with_genres=${genre}&include_adult=false&vote_average.gte=7.5&vote_count.gte=1200&sort_by=vote_count.desc&page=${page}`;
+        const url = tmdbUrl("/discover/movie", baseQuery);
 
         const response = await fetch(url);
         const data = await response.json();
@@ -133,7 +136,28 @@ app.get("/api/hero", async (req, res) => {
             return res.status(response.status).json({ error: "Errore TMDB", details: data });
         }
 
-        res.json(data);
+        const premiumResults = Array.isArray(data.results)
+            ? data.results.filter(film => film.poster_path && film.backdrop_path)
+            : [];
+
+        if (premiumResults.length >= 8) {
+            return res.json({ ...data, results: premiumResults });
+        }
+
+        const fallbackUrl = tmdbUrl("/discover/movie", `&with_genres=${genre}&include_adult=false&vote_average.gte=7&vote_count.gte=600&sort_by=popularity.desc&page=1`);
+        const fallbackResponse = await fetch(fallbackUrl);
+        const fallbackData = await fallbackResponse.json();
+
+        if (!fallbackResponse.ok) {
+            return res.status(fallbackResponse.status).json({ error: "Errore TMDB", details: fallbackData });
+        }
+
+        return res.json({
+            ...fallbackData,
+            results: Array.isArray(fallbackData.results)
+                ? fallbackData.results.filter(film => film.poster_path && film.backdrop_path)
+                : []
+        });
 
     } catch (error) {
         res.status(500).json({ error: "Errore server" });

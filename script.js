@@ -53,6 +53,15 @@ function toggleSavedMovie(film) {
 
 document.addEventListener("DOMContentLoaded", () => {
     mostraFilmSalvati();
+
+    const siteIntro = document.getElementById("siteIntro");
+    if (siteIntro) {
+        siteIntro.addEventListener("animationend", (event) => {
+            if (event.animationName === "introExit") {
+                siteIntro.classList.add("is-hidden");
+            }
+        });
+    }
 });
 
 
@@ -60,6 +69,8 @@ document.addEventListener("DOMContentLoaded", () => {
 async function caricaHeroDinamica(genere = "azione") {
     try {
         const hero = document.getElementById("hero");
+        const posterWall = document.getElementById("heroPosterWall");
+        if (!hero || !posterWall) return;
 
         const genreMap = {
             azione: 28,
@@ -84,25 +95,43 @@ async function caricaHeroDinamica(genere = "azione") {
 
         const genreId = genreMap[genere] || 28;
 
-        const url = `https://cine-ai-9mob.onrender.com/api/hero?genre=${genreId}`;
+        const page = Math.floor(Math.random() * 3) + 1;
+        const url = `https://cine-ai-9mob.onrender.com/api/hero?genre=${genreId}&page=${page}`;
 
         const response = await fetch(url);
         const data = await response.json();
 
-        const randomIndex = Math.floor(Math.random() * data.results.length);
-        const film = data.results[randomIndex];
+        const films = Array.isArray(data.results)
+            ? data.results
+                .filter(film =>
+                    film.poster_path &&
+                    film.backdrop_path &&
+                    Number(film.vote_average) >= 7.5 &&
+                    Number(film.vote_count) >= 700
+                )
+                .sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0))
+                .slice(0, 14)
+            : [];
 
-        const backdrop = film.backdrop_path
-            ? `https://image.tmdb.org/t/p/original${film.backdrop_path}`
-            : "";
+        if (films.length === 0) return;
 
-        // fade smooth (già fatto)
-        hero.style.opacity = "0";
+        const collage = films.map((film, index) => {
+            const imageSize = index % 5 === 0 ? "w780" : "w500";
+            const poster = `https://image.tmdb.org/t/p/${imageSize}${film.poster_path}`;
+            const title = String(film.title || "Film cult").replace(/"/g, "&quot;");
+            return `
+                <div class="poster-tile poster-tile-${index % 7}">
+                    <img src="${poster}" alt="${title}" loading="eager">
+                </div>
+            `;
+        }).join("");
+
+        posterWall.classList.add("is-changing");
 
         setTimeout(() => {
-            hero.style.backgroundImage = `url(${backdrop})`;
-            hero.style.opacity = "1";
-        }, 200);
+            posterWall.innerHTML = collage;
+            posterWall.classList.remove("is-changing");
+        }, 180);
 
     } catch (error) {
         console.error("Errore hero:", error);
@@ -385,8 +414,8 @@ async function apriModale(film, card) {
 
         // 🎬 RENDER FINALE
         const generi = data.genres?.map(g => g.name).join(" • ") || "";
-        const durata = data.runtime ? `⏱ ${data.runtime} min` : "";
-        const voto = data.vote_average ? `⭐ ${data.vote_average.toFixed(1)}` : "";
+        const durata = data.runtime ? `${data.runtime} min` : "";
+        const voto = data.vote_average ? `Voto ${data.vote_average.toFixed(1)}` : "";
         const cast = data.credits?.cast?.slice(0, 5) || [];
         const castHTML = cast.length ? `
     <div class="cast-strip">
@@ -420,7 +449,7 @@ async function apriModale(film, card) {
         ${generi ? `<span class="modal-badge">${generi}</span>` : ""}
     </div>
     <button class="modal-save-btn ${isSaved ? "saved" : ""}" id="modalSaveBtn">
-        ${isSaved ? "❤️ Salvato" : "🤍 Salva"}
+        ${isSaved ? "Salvato" : "Salva"}
     </button>
     <div class="modal-ai-reason">${modalReason}</div>
     <p>${data.overview || "Trama non disponibile"}</p>
@@ -439,19 +468,19 @@ async function apriModale(film, card) {
             });
             const nowSaved = savedMovies.includes(data.id);
             modalSaveBtn.classList.toggle("saved", nowSaved);
-            modalSaveBtn.textContent = nowSaved ? "❤️ Salvato" : "🤍 Salva";
+            modalSaveBtn.textContent = nowSaved ? "Salvato" : "Salva";
         });
 
     } catch (error) {
         console.error("Errore modale:", error);
-        info.innerHTML = "<p>Errore nel caricamento dei dettagli 😢</p>";
+        info.innerHTML = "<p>Errore nel caricamento dei dettagli.</p>";
     }
 }
 
 async function mostraFilm(listaFilm, container) {
 
     if (!Array.isArray(listaFilm) || listaFilm.length === 0) {
-        container.innerHTML = "<p>Nessun film trovato 😢</p>";
+        container.innerHTML = "<p>Nessun film trovato.</p>";
         return;
     }
 
@@ -491,7 +520,7 @@ async function mostraFilm(listaFilm, container) {
             ? `https://image.tmdb.org/t/p/w500${film.poster_path}`
             : "";
 
-        const durata = film.runtime ? ` • ⏱ ${film.runtime} min` : "";
+        const durata = film.runtime ? ` • ${film.runtime} min` : "";
 
         const card = document.createElement("div");
         card.classList.add("movie-card");
@@ -511,14 +540,14 @@ async function mostraFilm(listaFilm, container) {
         card.innerHTML = `
     <div class="card-media">
         <div class="actions">
-            <div class="save-btn">❤️</div>
-            <div class="dislike-btn">👎</div>
+            <div class="save-btn" title="Salva"></div>
+            <div class="dislike-btn" title="Nascondi"></div>
         </div>
         <img src="${poster}" alt="${film.title}" class="poster">
         <div class="overlay-card">
     <h3>${film.title}</h3>
-    <p>⭐ ${film.vote_average.toFixed(1)}${durata}</p>
-    <div class="watch-btn">🎬 Scopri di più</div>
+    <p>Voto ${film.vote_average.toFixed(1)}${durata}</p>
+    <div class="watch-btn">Scopri di più</div>
 </div>
     </div>
 `;
@@ -648,13 +677,13 @@ async function mostraTop3(lista, container) {
                 <p class="top-kicker">Scelta CineAI per questa serata</p>
                 <h2>${film.title}</h2>
                 <p class="top-meta">
-                    ⭐ ${film.vote_average.toFixed(1)}
-                    ${film.runtime ? `• ⏱ ${film.runtime} min` : ""}
+                    Voto ${film.vote_average.toFixed(1)}
+                    ${film.runtime ? `• ${film.runtime} min` : ""}
                     ${generi ? `• ${generi}` : ""}
                 </p>
                 <p class="top-synopsis">${film.overview || "Una scelta forte per il mood che hai impostato."}</p>
                 <div class="top-reason">${motivo}</div>
-                <div class="watch-btn">🎬 Scopri di più</div>
+                <div class="watch-btn">Scopri di più</div>
             </div>
         ` : `
             <img src="${poster}" class="top-poster">
@@ -663,10 +692,10 @@ async function mostraTop3(lista, container) {
     <h2>${film.title}</h2>
 
     <p class="top-meta">
-        ⭐ ${film.vote_average.toFixed(1)}
-        ${film.runtime ? `• ⏱ ${film.runtime} min` : ""}
+        Voto ${film.vote_average.toFixed(1)}
+        ${film.runtime ? `• ${film.runtime} min` : ""}
     </p>
-    <div class="watch-btn">🎬 Scopri di più</div>
+    <div class="watch-btn">Scopri di più</div>
 </div>
         `;
 
@@ -765,33 +794,33 @@ function generaMotivoBreve(mood) {
 
     const map = {
         mentale: [
-            "🧠 Ti farà riflettere",
-            "🧩 Ricco di significato",
-            "🎯 Stimolante e profondo"
+            "Ti farà riflettere",
+            "Ricco di significato",
+            "Stimolante e profondo"
         ],
         evasione: [
-            "🌍 Perfetto per staccare",
-            "✨ Ti porta altrove",
-            "🎬 Intrattenimento puro"
+            "Perfetto per staccare",
+            "Ti porta altrove",
+            "Intrattenimento puro"
         ],
         emozioni_forti: [
-            "🔥 Ritmo altissimo",
-            "⚡ Tensione continua",
-            "💥 Adrenalina pura"
+            "Ritmo altissimo",
+            "Tensione continua",
+            "Adrenalina pura"
         ],
         comfort: [
-            "😌 Leggero e rilassante",
-            "🍿 Perfetto per una serata easy",
-            "😊 Zero stress, solo piacere"
+            "Leggero e rilassante",
+            "Perfetto per una serata easy",
+            "Zero stress, solo piacere"
         ],
         curioso: [
-            "✨ Qualcosa di diverso",
-            "🎥 Fuori dai soliti schemi",
-            "🧪 Esperienza originale"
+            "Qualcosa di diverso",
+            "Fuori dai soliti schemi",
+            "Esperienza originale"
         ]
     };
 
-    const options = map[mood] || ["🎯 Consigliato per te"];
+    const options = map[mood] || ["Consigliato per te"];
 
     return options[Math.floor(Math.random() * options.length)];
 }
@@ -852,7 +881,7 @@ async function mostraFilmSalvati() {
     if (savedMovies.length === 0) {
         container.innerHTML = `
             <div class="saved-empty">
-                <span>❤️</span>
+                <span class="saved-empty-icon" aria-hidden="true"></span>
                 <p>Nessun film salvato</p>
             </div>
         `;
@@ -882,7 +911,7 @@ async function mostraFilmSalvati() {
 
         <div class="saved-card-info">
             <h3>${film.title}</h3>
-            <p>${anno} • ⭐ ${film.vote_average ? film.vote_average.toFixed(1) : "N/D"}</p>
+            <p>${anno} • Voto ${film.vote_average ? film.vote_average.toFixed(1) : "N/D"}</p>
         </div>
     </div>
 `;
@@ -952,9 +981,20 @@ function updateWizardChrome() {
     const label = document.getElementById("wizardStepLabel");
     const fill = document.getElementById("wizardLineFill");
     const summary = document.getElementById("wizardSummary");
+    const backButton = document.getElementById("wizardBack");
+    const findButton = document.getElementById("btnTrovaFilm");
 
     if (label) label.textContent = `Step ${currentStep} di 4`;
     if (fill) fill.style.width = `${currentStep * 25}%`;
+    if (backButton) {
+        backButton.disabled = currentStep === 1;
+        backButton.classList.toggle("visible", currentStep > 1);
+    }
+    if (findButton) {
+        const canSearch = Boolean(wizardData.epoca);
+        findButton.disabled = !canSearch;
+        findButton.textContent = canSearch ? "Trova il mio film" : "Scegli un'epoca";
+    }
 
     const parts = [];
     if (wizardData.mood) parts.push(moodLabels[wizardData.mood] || wizardData.mood);
@@ -1047,6 +1087,7 @@ document.querySelectorAll("#step3 .wizard-card").forEach(card => {
 
         wizardData.genere = card.dataset.value;
         updateWizardChrome();
+        caricaHeroDinamica(wizardData.genere);
 
         setTimeout(() => goToStep(4), 380);
     });
@@ -1070,6 +1111,12 @@ document.querySelectorAll(".wizard-dot").forEach(dot => {
     });
 });
 
+document.getElementById("wizardBack").addEventListener("click", () => {
+    if (currentStep > 1) {
+        goToStep(currentStep - 1);
+    }
+});
+
 async function generaConsigli({ reroll = false } = {}) {
     if (!wizardData.mood) {
         goToStep(1);
@@ -1081,7 +1128,11 @@ async function generaConsigli({ reroll = false } = {}) {
         return;
     }
 
-    if (!wizardData.epoca) wizardData.epoca = "misto";
+    if (!wizardData.epoca) {
+        goToStep(4);
+        updateWizardChrome();
+        return;
+    }
 
     const loading = document.getElementById("loading");
     const rerollBtn = document.getElementById("rerollBtn");
@@ -1133,7 +1184,7 @@ async function generaConsigli({ reroll = false } = {}) {
         }
 
         const spiegazione = generaSpiegazione(wizardData.mood, wizardData.tempo, wizardData.genere);
-        document.getElementById("aiBox").innerHTML = `<div class="ai-box">🤖 ${spiegazione}</div>`;
+        document.getElementById("aiBox").innerHTML = `<div class="ai-box">${spiegazione}</div>`;
 
         const top3Container = document.getElementById("top3");
         const resultsContainer = document.getElementById("results");
@@ -1175,6 +1226,7 @@ document.getElementById("rerollBtn").addEventListener("click", () => {
 });
 
 updateWizardChrome();
+caricaHeroDinamica("azione");
 
 // 🎬 PARTICELLE HERO
 const canvas = document.getElementById("particleCanvas");
