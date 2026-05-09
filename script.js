@@ -24,6 +24,23 @@ let userProfile = {
     likedGenres: {}
 };
 
+const heroFallbackPosters = [
+    "/9O7gLzmreU0nGkIB6K3BsJbzvNv.jpg",
+    "/vQWk5YBFWF4bZaofAbv0tShwBvQ.jpg",
+    "/2yYP0PQjG8zVqturh1BAqu2Tixl.jpg",
+    "/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg",
+    "/rplLJ2hPcOQmkFhTqUte0MkEaO2.jpg",
+    "/e1mjopzAS2KNsvpbpahQ1a6SkSn.jpg",
+    "/2CAL2433ZeIihfX1Hb2139CX0pW.jpg",
+    "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+    "/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+    "/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg",
+    "/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg",
+    "/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg",
+    "/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg",
+    "/8UlWHLMpgZm9bx6QYh0NFoq67TZ.jpg"
+];
+
 function syncSavedUI(filmId) {
     document.querySelectorAll(`.movie-card[data-id="${filmId}"] .save-btn`).forEach(btn => {
         btn.classList.toggle("saved", savedMovies.includes(filmId));
@@ -67,6 +84,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // 🎬 HERO DINAMICA
 async function caricaHeroDinamica(genere = "azione") {
+    const renderPosterWall = (posterPaths) => {
+        const posterWall = document.getElementById("heroPosterWall");
+        if (!posterWall || !Array.isArray(posterPaths) || posterPaths.length === 0) return;
+
+        const collage = posterPaths.slice(0, 14).map((posterPath, index) => {
+            const imageSize = index % 5 === 0 ? "w780" : "w500";
+            const poster = posterPath.startsWith("http")
+                ? posterPath
+                : `https://image.tmdb.org/t/p/${imageSize}${posterPath}`;
+            return `
+                <div class="poster-tile poster-tile-${index % 7}">
+                    <img src="${poster}" alt="" loading="eager">
+                </div>
+            `;
+        }).join("");
+
+        posterWall.classList.add("is-changing");
+
+        setTimeout(() => {
+            posterWall.innerHTML = collage;
+            posterWall.classList.remove("is-changing");
+        }, 180);
+    };
+
     try {
         const hero = document.getElementById("hero");
         const posterWall = document.getElementById("heroPosterWall");
@@ -105,36 +146,18 @@ async function caricaHeroDinamica(genere = "azione") {
             ? data.results
                 .filter(film =>
                     film.poster_path &&
-                    film.backdrop_path &&
-                    Number(film.vote_average) >= 7.5 &&
-                    Number(film.vote_count) >= 700
+                    Number(film.vote_average) >= 7 &&
+                    Number(film.vote_count) >= 400
                 )
                 .sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0))
                 .slice(0, 14)
             : [];
 
-        if (films.length === 0) return;
-
-        const collage = films.map((film, index) => {
-            const imageSize = index % 5 === 0 ? "w780" : "w500";
-            const poster = `https://image.tmdb.org/t/p/${imageSize}${film.poster_path}`;
-            const title = String(film.title || "Film cult").replace(/"/g, "&quot;");
-            return `
-                <div class="poster-tile poster-tile-${index % 7}">
-                    <img src="${poster}" alt="${title}" loading="eager">
-                </div>
-            `;
-        }).join("");
-
-        posterWall.classList.add("is-changing");
-
-        setTimeout(() => {
-            posterWall.innerHTML = collage;
-            posterWall.classList.remove("is-changing");
-        }, 180);
+        renderPosterWall(films.length ? films.map(film => film.poster_path) : heroFallbackPosters);
 
     } catch (error) {
         console.error("Errore hero:", error);
+        renderPosterWall(heroFallbackPosters);
     }
 }
 
